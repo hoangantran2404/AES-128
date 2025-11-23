@@ -64,10 +64,10 @@ module MixColumns #(
     wire [7:0] o02 ;
     wire [7:0] o03 ;
 
-    Mult (.a(s00),.b(4'h02),.m(o00));
-    Mult (.a(s01),.b(4'h01),.m(o01));
-    Mult (.a(s02),.b(4'h01),.m(o02));
-    Mult (.a(s03),.b(4'h03),.m(o03));
+    GFMult (.a(s00),.b(4'h02),.p(o00));
+    GFMult (.a(s01),.b(4'h01),.p(o01));
+    GFMult (.a(s02),.b(4'h01),.p(o02));
+    GFMult (.a(s03),.b(4'h03),.p(o03));
 
     assign out_mc0={o00, o01, o02, o03};
     // Output 1
@@ -76,10 +76,10 @@ module MixColumns #(
     wire [7:0] o12 ;
     wire [7:0] o13 ;
 
-    Mult (.a(s10),.b(4'h03),.m(o10));
-    Mult (.a(s11),.b(4'h02),.m(o11));
-    Mult (.a(s12),.b(4'h01),.m(o12));
-    Mult (.a(s13),.b(4'h01),.m(o13));
+    GFMult (.a(s10),.b(4'h03),.p(o10));
+    GFMult (.a(s11),.b(4'h02),.p(o11));
+    GFMult (.a(s12),.b(4'h01),.p(o12));
+    GFMult (.a(s13),.b(4'h01),.p(o13));
 
     assign out_mc1={o10, o11, o12, o13};
 
@@ -89,10 +89,10 @@ module MixColumns #(
     wire [7:0] o22 = out_mc2[15:8] ;
     wire [7:0] o23 = out_mc2[7:0]  ;
 
-    Mult (.a(s20),.b(4'h01),.m(o20));
-    Mult (.a(s21),.b(4'h03),.m(o21));
-    Mult (.a(s22),.b(4'h02),.m(o22));
-    Mult (.a(s23),.b(4'h01),.m(o23));
+    GFMult (.a(s20),.b(4'h01),.p(o20));
+    GFMult (.a(s21),.b(4'h03),.p(o21));
+    GFMult (.a(s22),.b(4'h02),.p(o22));
+    GFMult (.a(s23),.b(4'h01),.p(o23));
 
     assign out_mc2={o20, o21, o22, o23};
 
@@ -102,25 +102,45 @@ module MixColumns #(
     wire [7:0] o32 ;
     wire [7:0] o33 ;
 
-    Mult (.a(s30),.b(4'h01),.m(o30));
-    Mult (.a(s31),.b(4'h01),.m(o31));
-    Mult (.a(s32),.b(4'h03),.m(o32));
-    Mult (.a(s33),.b(4'h02),.m(o33));
+    GFMult (.a(s30),.b(4'h01),.p(o30));
+    GFMult (.a(s31),.b(4'h01),.p(o31));
+    GFMult (.a(s32),.b(4'h03),.p(o32));
+    GFMult (.a(s33),.b(4'h02),.p(o33));
 
     assign out_mc3={o30, o31, o32, o33};
 
 endmodule
 
-module Mult(
+module GFMult(
     input wire [7:0] a,
     input wire [3:0] b,
 
-    output wire [7:0] m
+    output reg [7:0] p
 );
-    reg [7:0] m_r;
+// This is Galois Field Multiplication (GF) 
+// You can search for the operating rules on Gen AI. 
+// Constants: 8'h1B (0001 1011) is AES reduction modulo. x8 = x4 + x3 + x + 1
+//            8'h80 (1000 0000) is MSB of a.
+    reg [7:0] temp_a;
 
-    always@(a or b) begin
-        m_r <= a*b;
+    always @(a or b) begin
+        temp_a     <= a;
+        p          <= 0;
+
+        if(b[0]) begin
+            p      <= p ^ temp_a;
+            temp_a <= (temp_a << 1) ^ ( (temp_a & 8'h80) ? 8'h1B : 8'h00);
+        end
+        if(b[1]) begin
+            p      <= p ^ temp_a;
+            temp_a <= (temp_a << 1) ^ ( (temp_a & 8'h80) ? 8'h1B : 8'h00);
+        end
+        if (b[2])
+            p      <= p ^ temp_a;
+            temp_a <= (temp_a << 1) ^ ( (temp_a & 8'h80) ? 8'h1B : 8'h00);
+
+        if (b[3]) 
+            p      <= p ^ temp_a;
     end
 
 endmodule
