@@ -18,14 +18,12 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
 module Cipher#(
     parameter DATA_WIDTH =32
 )
 (   
     input wire clk, rst_n,
-    input wire [2:0]              FSM_core_in
+    input wire [2:0]              FSM_core_in,
     input wire [3:0]              core_count_in,
     input wire [DATA_WIDTH -1: 0] text_0_in,  
     input wire [DATA_WIDTH -1: 0] text_1_in,
@@ -116,7 +114,7 @@ module Cipher#(
         .o_out0(SR_in0_r_w),
         .o_out1(SR_in1_r_w),
         .o_out2(SR_in2_r_w),
-        .o_out3(SR_in3_r_w),
+        .o_out3(SR_in3_r_w)
     );
 
     ShiftRows#(
@@ -139,7 +137,7 @@ module Cipher#(
     )
     (
         .in_mc0(MC_in0_r_w),
-        .in_mc1(MC_in1_r_w)
+        .in_mc1(MC_in1_r_w),
         .in_mc2(MC_in2_r_w),
         .in_mc3(MC_in3_r_w),
 
@@ -182,7 +180,7 @@ module Cipher#(
         .o_out0(SR_in0_r10_w),
         .o_out1(SR_in1_r10_w),
         .o_out2(SR_in2_r10_w),
-        .o_out3(SR_in3_r10_w),
+        .o_out3(SR_in3_r10_w)
     );
 
     ShiftRows#(
