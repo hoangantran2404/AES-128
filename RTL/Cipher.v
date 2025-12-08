@@ -22,7 +22,7 @@ module Cipher#(
     parameter DATA_WIDTH =32
 )
 (   
-    input wire clk, rst_n,
+    input wire                    clk, rst_n,
     input wire [2:0]              FSM_core_in,
     input wire [3:0]              core_count_in,
     input wire [DATA_WIDTH -1: 0] text_0_in,  
@@ -48,7 +48,7 @@ module Cipher#(
     reg [DATA_WIDTH -1 :0]          address_r       [0:3];                           
 
     wire [2:0]                  FSM_state_w;
-    wire [3:0]                  round_count_w;
+    wire [3:0]                  core_count_w;
     // Round 0
     wire [DATA_WIDTH-1:0]      ARK_in0_r0_w , ARK_in1_r0_w, ARK_in2_r0_w , ARK_in3_r0_w; 
     wire [DATA_WIDTH-1:0]      ARK_out0_r0_w,ARK_out1_r0_w, ARK_out2_r0_w, ARK_out3_r0_w;
@@ -69,20 +69,20 @@ module Cipher#(
 //             Combinational Logic                  //
 //==================================================//
     assign FSM_state_w      = FSM_core_in;
-    assign round_count_w    = core_count_in;
-    assign cipher_dv_flag   = (FSM_state_w == 3'b100);
+    assign core_count_w    = core_count_in;
+    assign cipher_dv_flag   = (FSM_state_w == 3'b011);
 
-    assign text_0_out =(FSM_state_w == 3'b100)? address_r[0] : 32'd0;
-    assign text_1_out =(FSM_state_w == 3'b100)? address_r[1] : 32'd0;
-    assign text_2_out =(FSM_state_w == 3'b100)? address_r[2] : 32'd0;
-    assign text_3_out =(FSM_state_w == 3'b100)? address_r[3] : 32'd0;
+    assign text_0_out = address_r[0] ;
+    assign text_1_out = address_r[1] ;
+    assign text_2_out = address_r[2] ;
+    assign text_3_out = address_r[3] ;
 
 //==================================================//
 //             Instantiate module                   //
 //==================================================//
 
     // Round 0
-    AddRoundkey#(
+    AddRoundKey#(
         .DATA_WIDTH(DATA_WIDTH)
     )
     (
@@ -147,7 +147,7 @@ module Cipher#(
         .out_mc3(ARK_in3_r_w)
     );
 
-    AddRoundkey#(
+    AddRoundKey#(
         .DATA_WIDTH(DATA_WIDTH)
     )
     (
@@ -198,7 +198,7 @@ module Cipher#(
         .out_sr3(ARK_in3_r10_w)
     );
 
-    AddRoundkey#(
+    AddRoundKey#(
         .DATA_WIDTH(DATA_WIDTH)
     )
     (
@@ -229,20 +229,20 @@ module Cipher#(
                 address_r[i]        <= 32'd0;
             end
         end else begin
-            if(FSM_state_w == 3'b010) begin
+            if(FSM_state_w == 3'b001) begin
                 address_r[0]        <= text_0_in;
                 address_r[1]        <= text_1_in;
                 address_r[2]        <= text_2_in;
                 address_r[3]        <= text_3_in;
             
-            end else if(FSM_state_w == 3'b011) begin
-                if(round_count_w == 4'd0) begin
+            end else if(FSM_state_w == 3'b010) begin
+                if(core_count_w == 4'd0) begin
                     address_r[0]        <= ARK_out0_r0_w;
                     address_r[1]        <= ARK_out1_r0_w;
                     address_r[2]        <= ARK_out2_r0_w;
                     address_r[3]        <= ARK_out3_r0_w;
 
-                end else if(round_count_w >= 1 && round_count_w < 10) begin
+                end else if(core_count_w >= 1 && core_count_w < 10) begin
                     address_r[0]        <= ARK_out0_r_w;
                     address_r[1]        <= ARK_out1_r_w;
                     address_r[2]        <= ARK_out2_r_w;
