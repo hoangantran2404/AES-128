@@ -1,14 +1,14 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
-// 
+// Engineer: Ngo Tran Hoang An
+//           ngotranhoangan2007@gmail.com
 // Create Date: 12/01/2025 11:19:11 PM
 // Design Name: 
-// Module Name: KE
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
+// Module Name: Key_Expansion
+// Project Name: AES128
+// Target Devices: ZCU102 Xilinx FPGA Board
+// Tool Versions: Vivado 2022.2
 // Description: 
 // 
 // Dependencies: 
@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module KE#(
+module Key_Expansion#(
     parameter DATA_WIDTH =32
 )
 (
@@ -56,10 +56,10 @@ module KE#(
     assign data_out_2 =  KE_out2_w ;
     assign data_out_3 =  KE_out3_w ;
 
-    assign KE_out0_w = KE_out0_r ^ RoundConst_byte_w;
-    assign KE_out1_w = KE_out0_w ^ KE_out1_r;
-    assign KE_out2_w = KE_out1_w ^ KE_out2_r;
-    assign KE_out3_w = KE_out2_w ^ KE_out3_r;
+    assign KE_out0_w = (core_count_w != 4'd0)? KE_out0_r ^ RoundConst_byte_w    : KE_out0_r;
+    assign KE_out1_w = (core_count_w != 4'd0)? KE_out0_w ^ KE_out1_r            : KE_out1_r;
+    assign KE_out2_w = (core_count_w != 4'd0)? KE_out1_w ^ KE_out2_r            : KE_out2_r;
+    assign KE_out3_w = (core_count_w != 4'd0)? KE_out2_w ^ KE_out3_r            : KE_out3_r;
     //==================================================//
     //             Instantiate module                   //
     //==================================================//
@@ -97,7 +97,7 @@ module KE#(
         .DATA_WIDTH(DATA_WIDTH/8)
     )   module_RoundConst
     (
-        .Round_const_in(core_count_w),
+        .Round_const_in(core_count_w   ),
         .Rcon0_in(SubWord_byte_w[31:24]),
         .Rcon1_in(SubWord_byte_w[23:16]),
         .Rcon2_in(SubWord_byte_w[15:8] ),
@@ -117,12 +117,12 @@ module KE#(
             KE_out2_r <= 32'd0;
             KE_out3_r <= 32'd0;
        end else begin
-            if(FSM_core_w == 3'b010) begin//Receive key
+            if(FSM_core_w == 3'b001) begin//Receive key
                     KE_out0_r <= data_in_0;
                     KE_out1_r <= data_in_1;
                     KE_out2_r <= data_in_2;
                     KE_out3_r <= data_in_3;
-            end else if(FSM_core_w == 3'b011) begin//Key Expansion
+            end else if(FSM_core_w == 3'b010) begin//Key Expansion
                 if(core_count_w == 4'd0) begin
                     // Do not reload again
                 end else begin
