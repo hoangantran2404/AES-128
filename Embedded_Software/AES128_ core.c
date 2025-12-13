@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <string.h>
 
-const uint8_t rcon[11] = {
-    0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
+const uint8_t rcon[11]= {
+    0x00, 0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36
 };
 
 void RotWord(uint8_t *word)
@@ -12,11 +12,10 @@ void RotWord(uint8_t *word)
     word[0] = word[1];
     word[1] = word[2];
     word[2] = word[3];
-    word[3] = temp;
+    word[3] = word[0];
 }
-
 void SubWord(uint8_t *word)
-{   
+{
     static const uint8_t sbox[256] = {
         0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, 
         0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0, 
@@ -36,101 +35,102 @@ void SubWord(uint8_t *word)
         0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16  
     };
 
-    for (int i=0; i<4 ; i++) 
+    for (int i=0; i<4; i++) 
         word[i] = sbox[word[i]];
 }
 
 void AddRoundKey(uint32_t *state, const uint32_t *roundKey)
 {
-    for (int i=0; i<4; i++){
-        state[i] = state[i] ^ roundKey[i];
-    }
+    for (int i=0; i<4; i++)
+        state[i] ^= roundKey[i];
 }
 
- uint8_t GFMult(uint8_t a, uint8_t b)
+uint8_t GFMult(uint8_t a, uint8_t b)
 {
-    uint8_t temp_a = a;
-    uint8_t      p = 0x00;
+    uint8_t p = 0;
 
-    for (int i=0; i<8; i++){
-        if((b & 0x01) == 1)
-            p ^= temp_a;
+    for(int i=0; i < 8; i++)
+    {
+        if((b & 0x01) ==1)
+            p ^= a;
+        uint8_t over_flow = (a & 0x80); 
+        
+        a <<= 1;
 
-        uint8_t hi_bit_set = (temp_a & 0x80); 
-
-        temp_a = temp_a << 1;
-
-        if(hi_bit_set){
-            temp_a ^= 0x1b; 
+        if (over_flow == 1)
+        {
+            p ^= 0x1b;
         }
-        b = b >> 1;
+        b >>= 1;
     }
-
     return p;
 }
-void MixColumns(uint32_t *state)
+
+void SubBytes(uint32_t *state) 
 {
-    uint8_t  c[4];
-    uint8_t  *temp = (uint8_t*)state;
-    for(int i = 0; i< 16; i+=4){
-        c[0] = temp[i + 0];
-        c[1] = temp[i + 1];
-        c[2] = temp[i + 2];
-        c[3] = temp[i + 3];
-    
-        temp[i+0] = GFMult(c[0], 0x02) ^ GFMult(c[1], 0x03) ^ c[2] ^ c[3];
-        temp[i+1] = c[0] ^ GFMult(c[1], 0x02) ^ GFMult(c[2], 0x03) ^ c[3];
-        temp[i+2] = c[0] ^ c[1] ^ GFMult(c[2],0x02) ^ GFMult(c[3],0x03);
-        temp[i+3] = GFMult(c[0],0x03) ^ c[1] ^ c[2] ^ GFMult(c[3],0x02);
-        
+    uint8_t *temp = (uint8_t *) state;
+
+    for (int i=0; i<16 ; i+=4) 
+    {
+        SubWord(&temp[i]);          
     }
 }
 
- 
 void ShiftRows (uint32_t *state)
 {
-    uint8_t *s = (uint8_t*)state;
-    uint8_t temp[16];
+    uint8_t *temp = (uint8_t *) state;
+    uint8_t adr[16];                
+     
+    memcpy(adr,temp,16);
 
-    memcpy(temp,s,16);
-
-    s[0] = temp[0];     s[4] = temp[4];     s[8]  = temp[8];     s[12] = temp[12];
-    s[1] = temp[5];     s[5] = temp[9];     s[9]  = temp[13];    s[13] = temp[1];
-    s[2] = temp[10];    s[6] = temp[14];    s[10] = temp[2];     s[14] = temp[6];
-    s[3] = temp[15];    s[7] = temp[3];     s[11] = temp[7];     s[15] = temp[11];
-
+    temp[0] = adr[0];   temp[4] = adr[4];   temp[8] = adr[8];   temp[12] = adr[12];
+    temp[1] = adr[5];   temp[5] = adr[9];   temp[9] = adr[13];  temp[13] = adr[1];
+    temp[2] = adr[10];  temp[6] = adr[14];  temp[10] = adr[2];  temp[14] = adr[6];
+    temp[3] = adr[15];  temp[7] = adr[3];   temp[11] = adr[7];  temp[15] = adr[11];
 }
 
-void SubBytes(uint32_t *state)
-{
-    uint8_t *temp = (uint8_t*)state;
-    
-    for(int i=0; i<16; i+=4){
-        SubWord(&temp[i]);
+void MixColumns (uint32_t *state)
+{    
+    uint8_t *temp = (uint8_t *)state;
+    uint8_t adr[4];
+
+    for( int i=0; i <16 ; i+=4)
+    {
+        adr[0] = temp[i+0];
+        adr[1] = temp[i+1];
+        adr[2] = temp[i+2];
+        adr[3] = temp[i+3];
+
+        temp[i+0] = GFMult(adr[0],0x02) ^ GFMult(adr[1],0x03) ^ adr[2] ^ adr[3];
+        temp[i+1] = adr[0] ^ GFMult(adr[1], 0x02) ^ GFMult(adr[2],0x03) ^ adr[3];
+        temp[i+2] = adr[0] ^ adr[1] ^ GFMult(adr[2],0x02) ^ GFMult(adr[3],0x03);
+        temp[i+3] = GFMult(adr[0], 0x03) ^ adr[1] ^ adr[2] ^ GFMult(adr[3],0x02);
     }
 }
 
-
-void KeyExpansion(const uint32_t *key_in, uint32_t *key_out) 
+void KeyExpansion(const uint32_t *key_in, uint32_t *roundKey)
 {
     uint8_t temp[4];
-
-    for (int i=0; i<4; i++){
-        key_out[i] = key_in[i];
+    for (int i=0; i< 4; i++)// Round 0
+    {
+        roundKey[i] = key_in[i];
     }
 
-    for (int i=4; i<44; i++){
-        *(uint32_t*)temp = key_out[i-1]; 
+    for(int i= 4; i<44; i++)
+    {
+        *(uint32_t *)temp = key_in[i-1];
+                                       
+        if(i%4 == 0)
+        {
+            RotWord(temp); 
+            SubWord(temp); 
 
-        if (i % 4 == 0){
-            RotWord(temp);
-            SubWord(temp);
-
-            if((i/4) <= 10) {
-                temp[0] ^= rcon[i/4];
+            if(i/4 <= 10)
+            {
+                temp[0] ^= rcon[i/4]; 
             }
         }
-        key_out[i] = key_out[i-4] ^ (*(uint32_t*)temp);
+        roundKey[i] = roundKey[i-4] ^ (*(uint32_t*) temp);
     }
 }
 
@@ -139,25 +139,29 @@ void AES128_Encrypt(const uint32_t plaintext[4], const uint32_t key[4], uint32_t
     uint32_t state[4];
     uint32_t roundKeys[44];
 
-    KeyExpansion(key, roundKeys);
+    KeyExpansion(key,roundKeys);
 
-    for(int i=0; i<4; i++){
+    for(int i=0; i< 4; i++)
+    {
         state[i] = plaintext[i];
     }
 
     AddRoundKey(state, &roundKeys[0]);
-
-    for (int round=1; round <=9; round++){
-        SubBytes    (state);
-        ShiftRows   (state);
-        MixColumns  (state);
-        AddRoundKey (state, &roundKeys[round*4]);
+    
+    for (int i=0; i<10; i++)
+    {
+        SubBytes(state);
+        ShiftRows(state);
+        MixColumns(state);
+        AddRoundKey(state, &roundKeys[i*4]);
     }
 
-    SubBytes    (state);
-    ShiftRows   (state);
-    AddRoundKey (state, &roundKeys[40]);
+    SubBytes(state);
+    ShiftRows(state);
+    AddRoundKey(state, &roundKeys[40]);
 
-    for(int i=0; i<4; i++) 
+    for(int i=0; i < 4; i++)
+    {
         ciphertext[i] = state[i];
+    }
 }
