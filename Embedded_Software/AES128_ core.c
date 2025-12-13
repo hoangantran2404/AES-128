@@ -1,8 +1,8 @@
 #include <stdint.h>
 
-void RotWord(uint32_t data_in[4], uint32_t data_out[4])
+void RotWord(uint8_t data_in[4], uint8_t data_out[4])
 {
-    uint32_t temp = data_in[0];
+    uint8_t temp = data_in[0];
 
     data_out[0] = data_in[1];
     data_out[1] = data_in[2];
@@ -110,8 +110,8 @@ void SubBytes(uint32_t state[4])
 {
     uint8_t temp[4];
     for (int i=0; i<4; i++){
-        temp[0] = (state[i] >> 0) & 0xFF;
-        temp[1] = (state[i] >> 8) & 0xFF;
+        temp[0] = (state[i] >> 0)  & 0xFF;
+        temp[1] = (state[i] >> 8)  & 0xFF;
         temp[2] = (state[i] >> 16) & 0xFF;
         temp[3] = (state[i] >> 24) & 0xFF;
 
