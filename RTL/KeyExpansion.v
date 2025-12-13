@@ -63,9 +63,9 @@ module Key_Expansion#(
     //==================================================//
     //             Instantiate module                   //
     //==================================================//
-    RotWord #(
+    RotWord  #(
         .DATA_WIDTH(DATA_WIDTH/4)
-    )   module_RotWord
+    ) module_RotWord
     (
         .W0_in(KE_out3_r[31:24]       ),
         .W1_in(KE_out3_r[23:16]       ),
@@ -78,9 +78,7 @@ module Key_Expansion#(
         .W3_out(RotWord_byte_w[7:0]   )
     );
 
-    SubWord #(
-        .DATA_WIDTH(DATA_WIDTH/4)
-    )   module_SubWord
+    SubWord  module_SubWord
     (
         .i_S0(RotWord_byte_w[31:24]   ),
         .i_S1(RotWord_byte_w[23:16]   ),
@@ -93,9 +91,7 @@ module Key_Expansion#(
         .o_D3(SubWord_byte_w[7:0]     )
     );
 
-    RoundConst #(
-        .DATA_WIDTH(DATA_WIDTH/8)
-    )   module_RoundConst
+    RoundConst module_RoundConst
     (
         .Round_const_in(core_count_w   ),
         .Rcon0_in(SubWord_byte_w[31:24]),
