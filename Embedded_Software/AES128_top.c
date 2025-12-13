@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "/home/hoangan2404/Project_0/code_C/Prpject_AES128/AES128_ core.c"
+#include "AES128_ core.c"
 
 int main(){
     uint32_t plaintext[4] ={
