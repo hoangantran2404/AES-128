@@ -27,7 +27,7 @@ module RoundConst(
     input wire [7:0]  Rcon2_in,
     input wire [7:0]  Rcon3_in,
 
-    output reg [31:0] Round_const_out
+    output wire [31:0] Round_const_out
     );
      //==================================================//
     //                   Registers                      //
