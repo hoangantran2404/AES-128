@@ -50,7 +50,6 @@ module Cipher#(
     wire [2:0]                  FSM_state_w;
     wire [3:0]                  core_count_w;
     // Round 0
-    wire [DATA_WIDTH-1:0]      ARK_in0_r0_w , ARK_in1_r0_w, ARK_in2_r0_w , ARK_in3_r0_w; 
     wire [DATA_WIDTH-1:0]      ARK_out0_r0_w,ARK_out1_r0_w, ARK_out2_r0_w, ARK_out3_r0_w;
 
     // Round 1 to 9
