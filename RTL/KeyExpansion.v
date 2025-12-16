@@ -56,10 +56,10 @@ module Key_Expansion#(
     assign data_out_2 =  KE_out2_w ;
     assign data_out_3 =  KE_out3_w ;
 
-    assign KE_out0_w = (core_count_w != 4'd0)? KE_out0_r ^ RoundConst_byte_w    : KE_out0_r;
-    assign KE_out1_w = (core_count_w != 4'd0)? KE_out0_w ^ KE_out1_r            : KE_out1_r;
-    assign KE_out2_w = (core_count_w != 4'd0)? KE_out1_w ^ KE_out2_r            : KE_out2_r;
-    assign KE_out3_w = (core_count_w != 4'd0)? KE_out2_w ^ KE_out3_r            : KE_out3_r;
+    assign data_out_0 =   (core_count_w == 4'd0)? KE_out0_r : KE_out0_w;
+    assign data_out_1 =   (core_count_w == 4'd0)? KE_out1_r : KE_out1_w;
+    assign data_out_2 =   (core_count_w == 4'd0)? KE_out2_r : KE_out2_w;
+    assign data_out_3 =   (core_count_w == 4'd0)? KE_out3_r : KE_out3_w;
     //==================================================//
     //             Instantiate module                   //
     //==================================================//
@@ -113,14 +113,14 @@ module Key_Expansion#(
             KE_out2_r <= 32'd0;
             KE_out3_r <= 32'd0;
        end else begin
-            if(FSM_core_w == 3'b001) begin//Receive key
+            if(FSM_core_w == 3'b001) begin
                     KE_out0_r <= data_in_0;
                     KE_out1_r <= data_in_1;
                     KE_out2_r <= data_in_2;
                     KE_out3_r <= data_in_3;
-            end else if(FSM_core_w == 3'b010) begin//Key Expansion
+            end else if(FSM_core_w == 3'b010) begin
                 if(core_count_w == 4'd0) begin
-                    // Do not reload again
+
                 end else begin
                     KE_out0_r <= KE_out0_w;
                     KE_out1_r <= KE_out1_w;
