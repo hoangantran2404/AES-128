@@ -38,8 +38,8 @@ module AddRoundKey #(
     output wire [DATA_WIDTH-1:0] dout2,
     output wire [DATA_WIDTH-1:0] dout3
 );
-    assign dout0 = i_state0 ^ i_key0;// column0
-    assign dout1 = i_state1 ^ i_key1;// column1
+    assign dout0 = i_state0 ^ i_key0;
+    assign dout1 = i_state1 ^ i_key1;
     assign dout2 = i_state2 ^ i_key2;
     assign dout3 = i_state3 ^ i_key3;
 
