@@ -18,10 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
 module MP_in #(
-
     parameter DATA_WIDTH    = 32
 )(
     input  wire                             clk,    
@@ -29,7 +26,8 @@ module MP_in #(
     input  wire [7:0]                       uart_byte_in,     
     input  wire                             RX_DV_in,
 
-    output wire [DATA_WIDTH-1 :0]           MP_data_out,
+    output wire [DATA_WIDTH-1 :0]           MP_plaintext_out,
+    output wire [DATA_WIDTH-1 :0]           MP_key_out,
     output wire                             MP_dv_out     
 );
 
@@ -47,7 +45,7 @@ module MP_in #(
     //==================================================//
     //                   Registers                      //
     //==================================================//
-    reg [4:0]                     MP_count_r;
+    reg [5:0]                     MP_count_r;
     reg [127:0]                   plaintext_address_r ;  
     reg [127:0]                   key_address_r;
 
@@ -60,11 +58,11 @@ module MP_in #(
 
     assign MP_dv_out        = (current_state_r == s_SEND);
 
-    assign RX_done_flag_w   = (current_state_r == s_RX_DATA_BITS) && (MP_count_r == 5'd32) ; 
-    assign SEND_done_flag_w = (current_state_r == s_SEND && MP_count_r == 5'd7); 
+    assign RX_done_flag_w   = (current_state_r == s_RX_DATA_BITS && MP_count_r == 6'd32) ; 
+    assign SEND_done_flag_w = (current_state_r == s_SEND && MP_count_r == 6'd3); 
 
-    assign MP_data_out         = (current_state_r == s_SEND ) ?  ((MP_count_r <5'd16)? plaintext_address_r[127-32*MP_count_r -:32]: key_address_r[127-32*MP_count_r -:32]) : 32'd0;
-
+    assign MP_plaintext_out = (current_state_r == s_SEND) ?   plaintext_address_r[127-32*MP_count_r -:32]: 32'd0;
+    assign MP_key_out       = (current_state_r == s_SEND) ?   key_address_r[127-32*MP_count_r -:32]:32'd0;
     //==================================================//
     //                  Next State Logic                //
     //==================================================//
@@ -116,13 +114,8 @@ module MP_in #(
             plaintext_address_r  <= 128'd0;
             key_address_r        <= 128'd0;
         end else begin
-            if (current_state_r != next_state_r) begin
-                if (next_state_r == s_SEND)      
-                    MP_count_r <= 0; 
-                else if (next_state_r == s_PRELOAD) 
-                    MP_count_r <= 0;
-            end
-
+            if(next_state_r == s_SEND)
+                MP_count_r <= 0;
             case(current_state_r)
                 s_PRELOAD: begin
                    if (RX_DV_in) begin
@@ -130,28 +123,25 @@ module MP_in #(
                         MP_count_r                    <= 1;
                     end
                 end
-
                 s_RX_DATA_BITS: begin
-                    if(RX_DV_in)
-                        if(MP_count_r < 5'd16) begin
+                    if(RX_DV_in) begin
+                        if(MP_count_r < 6'd16) begin
                             plaintext_address_r[127 - 8*MP_count_r -:8] <= uart_byte_in;             
-                            MP_count_r                                  <= MP_count_r + 1;
                         end else begin
-                            key_address_r[127 -8*MP_count_r -:8] <= uart_byte_in;
-                            MP_count_r                           <= MP_count_r + 1;
+                            key_address_r[127 -8*(MP_count_r-16) -:8] <= uart_byte_in;
                         end
-
+                            MP_count_r <= MP_count_r + 1;
+                    end 
                 end
-
                 s_SEND: begin
-                    if(MP_count_r < 5'd8)
+                    if(MP_count_r < 6'd4)
                         MP_count_r   <= MP_count_r + 1;        
                 end
 
-                s_CLEANUP: begin                         
+                s_CLEANUP: begin              
+                    MP_count_r      <= 0;           
                 end
             endcase
         end
     end
-
 endmodule
