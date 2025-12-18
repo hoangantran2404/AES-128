@@ -55,10 +55,25 @@ The following diagram illustrates the system hierarchy and data path:
 | `SubWord.v` | Key_Exp | S-Box substitution for key generation. |
 | `RoundConst.v` | Key_Exp | Generates round constants (Rcon). |
 
-### 📂 Embedded Code (Verification)
+### 📂 Testbench (Verification)
+| Module Name | Description |
+| :--- | :--- | 
+| `AES128_top_tb.v` | Full system simulation (UART -> Core -> UART)|
+| `AES128_core_tb.v` | Core logic simulation |
+| `cipher_tb.v` | Cipher unit test |
+| `key_expabsion_tb.v` | Key Expansion unit test|
+| `MP_in_tb.v` | Message_Packer_in unit test|
+| `MP_out_tb.v` | Message_Packer_out unit test |
+| `RX_tb.v` | UART_RX unit test |
+| `TX_tb.v` | UART_TX unit test |
+
+
+### 📂 Embedded Code (Run on software)
 
 | File Name | Role | Function / Description |
 | :--- | :---: | :--- |
+| `main.c` | **Model** | **C Implementation:** UART Handler: Communicates with the ZCU 102, loads input data, and prints the final AES128 output. |
+| `AES127_top.c` | **Model** | **C Implementation:** Top module: Load inputs to AES128_core.c and prints final AES128 output |
 | `AES128_core.c` | **Model** | **C Implementation:** Software version of the algorithm used to generate "Golden Vectors" to verify the FPGA hardware output. |
 
 ## 5. Getting Started
@@ -81,3 +96,8 @@ The following diagram illustrates the system hierarchy and data path:
 ## 7. Acknowledgments
 * UART Receiver/Transmitter modules provided by course instructor.
 * GEMINI thinking 3 pro helps me how to decorate file README.md.
+
+## 8. Screenshots
+* This picture shows output of AES128 runned on ZCU102.
+<img width="1922" height="934" alt="Screenshot from 2025-12-18 01-45-52" src="https://github.com/user-attachments/assets/233225ae-f88f-441d-9e9b-07fa004bb93a" />
+
