@@ -1,62 +1,83 @@
-# AES-128
-Online sources I have reviewed: 
-- Youtube           :  [https://www.youtube.com/watch?v=gP4PqVGudtg&t=44s](https://www.youtube.com/watch?v=gP4PqVGudtg&t=64s)
-- Scientific article:  [https://ieeexplore.ieee.org/abstract/document/9367201](https://www.scielo.org.ar/pdf/laar/v37n1/v37n1a14.pdf)
+# AES-128 Implementation on ZCU102
 
+## 1. Overview
+This project implements the **AES-128 (Advanced Encryption Standard)** algorithm entirely in Verilog using the Xilinx Vivado Design Suite. It is designed for FPGA synthesis, specifically targeting the **ZCU102** evaluation board.
 
-  
-1.Overview
-- This project implements the AES algorithm entirely in Verilog on Vivado and C coding language on VS code.
-- It is designed for FPGA synthesis, demonstrating digital design skills in pipelining, FSM control, message scheduling, and data path design.
+Unlike hashing algorithms (like SHA-256) which verify integrity, AES-128 is a symmetric block cipher used for **confidentiality**. In the industry, this architecture is critical for:
+* **SoC (System on Chip):** Acting as a dedicated hardware accelerator to offload encryption tasks from the main CPU, ensuring secure boot sequences and memory protection.
+* **FPGA Applications:** Facilitating high-speed, low-latency network security protocols (such as IPsec or MACsec) where software encryption is too slow.
+* **Smart ICs:** Providing power-efficient data protection in constrained environments like banking smart cards and secure IoT nodes.
 
+### 1.1 Dataflow
+The system processes data through the following pipeline:
+1.  **UART Receiver:** Captures 8-bit serial input.
+2.  **Message Packer (In):** Buffers and packs 8-bit inputs into a 128-bit Plaintext/Key block.
+3.  **AES-128 Core:** Performs the 10-round encryption process (Key Expansion + Cipher).
+4.  **Message Packer (Out):** Unpacks the resulting 128-bit Ciphertext into 8-bit segments.
+5.  **UART Transmitter:** Serializes data for display.
 
-1.1 Dataflow:
-  - UART Receiver (8-bit)
-  - Message Packer (8-bit → 512-bit)
-  - AES-256 Core (32-bit internal)
-  - Message Packer (128-bit → 8-bit)
-  - UART TX (8-bit)
+## 2. Features
+* **Fully Compliant:** Adheres strictly to FIPS 197 AES-128 specifications.
+* **Modular Architecture:** Separated logic for Cipher, Key Expansion, and Control Units.
+* **Optimized Design:** Pipeline-friendly data path for enhanced throughput.
+* **Flexible Integration:** Parameterizable data width (default 32-bit internal).
+* **Verified:** Validated via waveform simulation and C-model comparison.
+* **Hardware Proven:** Synthesizable and active on the Xilinx ZCU102 FPGA.
 
+## 3. Architecture
+The following diagram illustrates the system hierarchy and data path:
+<img width="1746" height="626" alt="AES Structure" src="https://github.com/user-attachments/assets/3fdd0cf8-a224-472a-a975-7f1be9956de5" />
 
-  
-2.Features
-- Fully compliant with AES-128 specification
-- Modular structure (Cipher, Key_Expansion, and Control Units)
-- Pipeline-friendly design for better throughput
-- Parameterizable data width[32bit] and easy integration
-- Testbench included for simulation and verification using waveform
-- Synthesizable and activable on ZCU102 (FPGA board)
+## 4. Project Structure
 
+### 📂 RTL Source Code
 
-3.Structures
-<img width="1746" height="626" alt="Screenshot from 2025-12-13 17-25-49" src="https://github.com/user-attachments/assets/3fdd0cf8-a224-472a-a975-7f1be9956de5" />
+| Module Name | Type | Function / Description |
+| :--- | :---: | :--- |
+| `AES128_top.v` | **Top Level** | Main entry point; integrates UART, Message Packers, and Core. |
+| `AES128_core.v` | **Core** | **FSMD Controller:** Orchestrates parallel execution of Cipher and Key Expansion. |
+| `Key_Expansion.v` | **Compute** | Generates the 44 words required for the 11 key rounds. |
+| `Cipher.v` | **Compute** | Performs the encryption rounds on 4 words of plaintext. |
+| `MP_in.v` | **Datapath** | **Input Packer:** Collects UART data to form 128-bit blocks for the Core. |
+| `MP_out.v` | **Datapath** | **Output Packer:** Handshakes with Core to serialize 128-bit output for UART. |
+| `receiver.v` | **IO** | UART Receiver (RX). |
+| `transmitter.v` | **IO** | UART Transmitter (TX). |
 
-- README.md
+### 📂 Computational Units (Sub-modules)
 
-  
-📂 RTL
-- AES128_top.v            # Top-level module
-- AES128_core.v           # This module has FSMD (Finite State Machine and Datapath), which controls module Cipher and module Key_Expansion doing in parallel way.
-- receiver                # UART receiver for converting the string input to binary (designed by my teacher)
-- transmitter             # UART transmitter for converting the string output to binary (designed by my teacher)
-- Key_Expansion.v         # This module generates 44 keys, which used in module Cipher in each 11 rounds.
-- Cipher.v                # This module does 11 rounds from 4 words of plaintext and 4 words of key to generate 4 final words of AES key(32-bit/1 Word).
-- MP_in.v                 # This module receives 128-bit of plaintext and 128-bit of key from UART RX and send to core sequentially.
-- MP_out.v                # This module has the same structure to MP_in.v, however it receives final 128-bit key from core and use "handshake" technique to send to UART TX.
-- RotWord.v               # Computational Units instantiated in Key_Epansion
-- SubWord.v               # Computational Units instantiated in Key_Epansion 
-- RoundConst.v            # Computational Units instantiated in Key_Epansion 
-- AddRoundKey.v           # Computational Units instantiated in Cipher 
-- SubBytes.v              # Computational Units instantiated in Cipher 
-- ShiftRows.v             # Computational Units instantiated in Cipher 
-- MixColumns.v            # Computational Units instantiated in Cipher
+| Module Name | Parent | Description |
+| :--- | :--- | :--- |
+| `SubBytes.v` | Cipher | Non-linear substitution step (S-Box). |
+| `ShiftRows.v` | Cipher | Transposition step (Cyclic shift). |
+| `MixColumns.v` | Cipher | Inter-column mixing operation. |
+| `AddRoundKey.v` | Cipher | XORs the state with the round key. |
+| `RotWord.v` | Key_Exp | Cyclic rotation of word bits. |
+| `SubWord.v` | Key_Exp | S-Box substitution for key generation. |
+| `RoundConst.v` | Key_Exp | Generates round constants (Rcon). |
 
+### 📂 Embedded Code (Verification)
 
-📂 UART
-- receiver                # UART receiver for converting the string input to binary (designed by my teacher)
-- transmitter             # UART transmitter for converting the string output to binary (designed by my teacher)
+| File Name | Role | Function / Description |
+| :--- | :---: | :--- |
+| `AES128_core.c` | **Model** | **C Implementation:** Software version of the algorithm used to generate "Golden Vectors" to verify the FPGA hardware output. |
 
+## 5. Getting Started
 
-📂 Embedded Code
-- AES128_core.c           # This is AES128_core implemented on software in C language. I use this file to generate output and then compare with result from ZCU102 FPGA board.
+### Prerequisites
+* Xilinx Vivado Design Suite
+* ZCU102 FPGA Evaluation Board
+* VS Code (for C simulation)
 
+### Simulation & Hardware
+1.  **Simulation:** Load the project in Vivado and run the behavioral simulation to view the waveform.
+2.  **Implementation:** Run Synthesis and Implementation to generate the Bitstream.
+3.  **Deployment:** Program the ZCU102 board.
+4.  **Verification:** Use a Terminal (TeraTerm) to send plaintext strings and verify the encrypted output against the `AES128_core.c` software result.
+
+## 6. References
+* **Tutorial:** [AES Implementation Guide (YouTube)](https://www.youtube.com/watch?v=gP4PqVGudtg&t=64s)
+* **Research:** [Scientific Article on AES/FPGA](https://www.scielo.org.ar/pdf/laar/v37n1/v37n1a14.pdf)
+
+## 7. Acknowledgments
+* UART Receiver/Transmitter modules provided by course instructor.
+* GEMINI thinking 3 pro helps me how to decorate file README.md.
