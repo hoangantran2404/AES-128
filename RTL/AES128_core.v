@@ -35,7 +35,7 @@ module AES128_core #(
     //==================================================//
     reg [127:0]                    address_key_r;
     reg [127:0]                    address_text_r;
-    reg [127:0]                    address_r;            // save the output
+    reg [127:0]                    address_r;           
     reg [3:0]                      core_count_r;
 
     wire                           load_done_flag_w;
@@ -198,8 +198,8 @@ module AES128_core #(
                         end
                     end
                     s_EXECUTE: begin
-                            address_key_r   <= KE_byte_out_w;       // Key Expansion will generate key before Cipher uses one round.
-                            core_count_r    <= core_count_r + 4'd1; // Cipher only collects avaliable data in address_key_r;
+                            address_key_r   <= KE_byte_out_w;     
+                            core_count_r    <= core_count_r + 4'd1; 
                     end
                     s_RX_data: begin
                        if(cipher_dv_out_w) begin
