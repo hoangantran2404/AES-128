@@ -26,7 +26,8 @@ The system processes data through the following pipeline:
 
 ## 3. Architecture
 The following diagram illustrates the system hierarchy and data path:
-<img width="1746" height="626" alt="AES Structure" src="https://github.com/user-attachments/assets/3fdd0cf8-a224-472a-a975-7f1be9956de5" />
+<img width="1738" height="289" alt="Screenshot from 2025-12-19 22-26-40" src="https://github.com/user-attachments/assets/c162d45f-5f9b-4341-b566-c92d4efcf29a" />
+
 
 ## 4. Project Structure
 
