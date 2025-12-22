@@ -59,14 +59,14 @@ The following diagram illustrates the system hierarchy and data path:
 ### 📂 Testbench (Verification)
 | Module Name | Description |
 | :--- | :--- | 
-| `AES128_top_tb.v` | Full system simulation (UART -> Core -> UART)|
-| `AES128_core_tb.v` | Core logic simulation |
-| `cipher_tb.v` | Cipher unit test |
-| `key_expabsion_tb.v` | Key Expansion unit test|
-| `MP_in_tb.v` | Message_Packer_in unit test|
-| `MP_out_tb.v` | Message_Packer_out unit test |
-| `RX_tb.v` | UART_RX unit test |
-| `TX_tb.v` | UART_TX unit test |
+| `AES128_top_tb.sv` | Full system simulation (UART -> Core -> UART)|
+| `AES128_core_tb.sv` | Core logic simulation |
+| `cipher_tb.sv` | Cipher unit test |
+| `key_expabsion_tb.sv` | Key Expansion unit test|
+| `MP_in_tb.sv` | Message_Packer_in unit test|
+| `MP_out_tb.sv` | Message_Packer_out unit test |
+| `RX_tb.sv` | UART_RX unit test |
+| `TX_tb.sv` | UART_TX unit test |
 
 
 ### 📂 Embedded Code (Run on software)
