@@ -18,7 +18,9 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+    //==========================================//
+    //           Interface Definition           //
+    //==========================================//
 interface cipher_interface #(parameter DATA_WIDTH =32) (input bit clk);
     logic                  rst_n;
     logic [2:0]            FSM_core_in;
@@ -37,7 +39,9 @@ interface cipher_interface #(parameter DATA_WIDTH =32) (input bit clk);
         input  cipher_dv_flag;
     endclocking
 endinterface
-
+    //==========================================//
+    //          Main Testbench Module           //
+    //==========================================//
 module cipher_tb;
     timeunit      1ns;
     timeprecision 1ps;
@@ -51,7 +55,9 @@ module cipher_tb;
     logic [127:0]          actual_result;
 
     cipher_interface #(.DATA_WIDTH(DATA_WIDTH)) vif (clk);
-
+     //==========================================//
+    //            DUT INSTANTIATION             //
+    //==========================================//
     Cipher #(
         .DATA_WIDTH(DATA_WIDTH)
     ) dut
@@ -79,12 +85,16 @@ module cipher_tb;
     );
 
     assign actual_result = {vif.cb.text_0_out,vif.cb.text_1_out,vif.cb.text_2_out,vif.cb.text_3_out};
-
+    //==========================================//
+    //            CLOCK Generation              //
+    //==========================================//
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
-
+    //==========================================//
+    //            Main Test Sequence            //
+    //==========================================//
     initial begin
         $display("========================================");
         $display("TESTBENCH STARTING: AES128-cipher       ");
@@ -136,6 +146,9 @@ module cipher_tb;
         verfication();
         $stop;    
     end
+    //==========================================//
+    //            Task & Function               //
+    //==========================================//
     task initialize_input();
         begin
             vif.cb.rst_n           <= 0;
@@ -152,7 +165,8 @@ module cipher_tb;
         
         end
     endtask
-    task verfication();
+
+    task automatic verfication();
         begin
             $display("----------------------------------------");
             $display("RESULT CHECK:");
