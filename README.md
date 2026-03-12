@@ -1,7 +1,7 @@
 # AES-128 Implementation on ZCU102
 
 ## 1. Overview
-This project implements the **AES-128 (Advanced Encryption Standard)** algorithm entirely in Verilog using the Xilinx Vivado Design Suite. It is designed for FPGA synthesis, specifically targeting the **ZCU102** evaluation board.
+This project implements the **AES-128 (Advanced Encryption Standard)** algorithm entirely in Verilog using the Xilinx Vivado Design Suite. It is designed for FPGA synthesis, specifically targeting the **ZCU102 & KV260** evaluation board.
 
 Unlike hashing algorithms (like SHA-256) which verify integrity, AES-128 is a symmetric block cipher used for **confidentiality**. In the industry, this architecture is critical for:
 * **SoC (System on Chip):** Acting as a dedicated hardware accelerator to offload encryption tasks from the main CPU, ensuring secure boot sequences and memory protection.
@@ -9,13 +9,17 @@ Unlike hashing algorithms (like SHA-256) which verify integrity, AES-128 is a sy
 * **Smart ICs:** Providing power-efficient data protection in constrained environments like banking smart cards and secure IoT nodes.
 
 ### 1.1 Dataflow
-The system processes data through the following pipeline:
+The system processes data using UART through the following pipeline:
 1.  **UART Receiver:** Captures 8-bit serial input.
 2.  **Message Packer (In):** Buffers and packs 8-bit inputs into a 128-bit Plaintext/Key block.
 3.  **AES-128 Core:** Performs the 10-round encryption process (Key Expansion + Cipher).
 4.  **Message Packer (Out):** Unpacks the resulting 128-bit Ciphertext into 8-bit segments.
 5.  **UART Transmitter:** Serializes data for display.
 
+Additionally, this system also processes data using AXI4-bus through the following pipeline:
+1. **AXI4_Mapping:** Receives input from CPU and send to core, then receive outputs to CPU.
+2. **AES-128 Core:** Performs the 10-round encryption process (Key Expansion + Cipher).
+   
 ## 2. Features
 * **Fully Compliant:** Adheres strictly to FIPS 197 AES-128 specifications.
 * **Modular Architecture:** Separated logic for Cipher, Key Expansion, and Control Units.
@@ -82,12 +86,14 @@ The following diagram illustrates the system hierarchy and data path:
 ### Prerequisites
 * Xilinx Vivado Design Suite
 * ZCU102 FPGA Evaluation Board
+* KV260 SoC Evaluation Board
 * VS Code (for C simulation)
+* Petalinux 
 
 ### Simulation & Hardware
 1.  **Simulation:** Load the project in Vivado and run the behavioral simulation to view the waveform.
 2.  **Implementation:** Run Synthesis and Implementation to generate the Bitstream.
-3.  **Deployment:** Program the ZCU102 board.
+3.  **Deployment:** Program the ZCU102 board. If you use AXI bus, you need to configure file.xsa with Petalinux to load in KV260.
 4.  **Verification:** Use a Terminal (TeraTerm) to send plaintext strings and verify the encrypted output against the `AES128_core.c` software result.
 
 ## 6. References
