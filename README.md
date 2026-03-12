@@ -17,7 +17,7 @@ The system processes data using UART through the following pipeline:
 5.  **UART Transmitter:** Serializes data for display.
 
 Additionally, this system also processes data using AXI4-bus through the following pipeline:
-1. **AXI4_Mapping:** Receives input from CPU and send to core, then receive outputs to CPU.
+1. **AXI4_Mapping:** Receives input from CPU and send to core, then receive outputs and send back to CPU.
 2. **AES-128 Core:** Performs the 10-round encryption process (Key Expansion + Cipher).
    
 ## 2. Features
