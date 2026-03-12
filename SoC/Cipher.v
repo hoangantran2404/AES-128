@@ -18,8 +18,6 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
 module Cipher#(
     parameter DATA_WIDTH =32
 )
@@ -87,10 +85,10 @@ module Cipher#(
         .DATA_WIDTH(DATA_WIDTH)
     ) module_ARK_R0
     (
-        .i_state0(address_r[0]),
-        .i_state1(address_r[1]),
-        .i_state2(address_r[2]),
-        .i_state3(address_r[3]),
+        .i_state0(text_0_in),
+        .i_state1(text_1_in),
+        .i_state2(text_2_in),
+        .i_state3(text_3_in),
 
         .i_key0  (key_0_in),
         .i_key1  (key_1_in),
@@ -230,13 +228,7 @@ module Cipher#(
                 address_r[i]        <= 32'd0;
             end
         end else begin
-            if(FSM_state_w == 3'b000) begin
-                address_r[0]        <= text_0_in;
-                address_r[1]        <= text_1_in;
-                address_r[2]        <= text_2_in;
-                address_r[3]        <= text_3_in;
-            
-            end else if(FSM_state_w == 3'b001) begin
+            if(FSM_state_w == 3'b001) begin
                 if(core_count_w == 4'd0) begin
                     address_r[0]        <= ARK_out0_r0_w;
                     address_r[1]        <= ARK_out1_r0_w;
