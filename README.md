@@ -1,4 +1,4 @@
-# AES-128 Implementation on ZCU102
+# AES-128 Implementation on ZCU102 & KV260
 
 ## 1. Overview
 This project implements the **AES-128 (Advanced Encryption Standard)** algorithm entirely in Verilog using the Xilinx Vivado Design Suite. It is designed for FPGA synthesis, specifically targeting the **ZCU102 & KV260** evaluation board.
