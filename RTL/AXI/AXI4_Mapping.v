@@ -38,7 +38,7 @@ module AXI4_Mapping
 		// Width of ID for for write address, write data, read address and read data
 		parameter integer C_S_AXI_ID_WIDTH		= 1,
 		// Width of S_AXI data bus
-		parameter integer C_S_AXI_DATA_WIDTH	= 128,
+		parameter integer C_S_AXI_DATA_WIDTH	= 32,
 		// Width of S_AXI address bus
 		parameter integer C_S_AXI_ADDR_WIDTH	= 40,
 		// Width of optional user defined signal in write address channel
@@ -231,8 +231,10 @@ module AXI4_Mapping
 	reg 		plaintext_dv_rg;
 	reg [127:0]	key_in_rg;
 	reg 		key_dv_rg;
+	reg 		valid_rg;
 	wire [127:0]dout_wr;
-	wire 		dout_dv_wr;
+	wire 		dout_valid_wr;
+	
 	//local parameter for addressing 32 bit / 64 bit C_S_AXI_DATA_WIDTH
 	//ADDR_LSB is used for addressing 32/64 bit registers/memories
 	//ADDR_LSB = 2 for 32 bits (n downto 2) 
@@ -649,33 +651,41 @@ module AXI4_Mapping
 			plaintext_dv_rg		<=	0;
 			key_in_rg 			<=	0;
 			key_dv_rg			<=	0;
+			valid_rg			<=	0;
 		end else begin 
 			start_in_rg         	<=  0; 
-            plaintext_dv_rg     	<=  plaintext_dv_rg;
-            key_dv_rg           	<=  key_dv_rg;
-			plaintext_dv_rg			<=	plaintext_dv_rg;
-			key_dv_rg				<=	key_dv_rg;
 
-			if (dout_dv_wr == 1'b1) begin
-                plaintext_dv_rg <=  1'b0;
-                key_dv_rg       <=  1'b0; 
-            end
 
 			if(axi_awv_awr_flag	&&	(axi_awaddr==`START_BASE_PHYS)) begin
 				start_in_rg			<=	S_AXI_WDATA[0:0];
-			end	else if(axi_awv_awr_flag	&&	(axi_awaddr==`PLAINTEXT_BASE_PHYS) && (s_axi_wstrb_r==16'hFFFF))begin
-				plaintext_in_rg		<=	{S_AXI_WDATA[15:0],    S_AXI_WDATA[31:16],
-										S_AXI_WDATA[47:32],   S_AXI_WDATA[63:48],
-										S_AXI_WDATA[79:64],   S_AXI_WDATA[95:80],
-										S_AXI_WDATA[111:96],  S_AXI_WDATA[127:112]};	
-				plaintext_dv_rg		<=	1; 
-			end else if(axi_awv_awr_flag	&&	(axi_awaddr==`KEY_BASE_PHYS)) begin
-				key_in_rg			<=	{S_AXI_WDATA[15:0],    S_AXI_WDATA[31:16],
-										S_AXI_WDATA[47:32],   S_AXI_WDATA[63:48],
-										S_AXI_WDATA[79:64],   S_AXI_WDATA[95:80],
-										S_AXI_WDATA[111:96],  S_AXI_WDATA[127:112]};
-				key_dv_rg			<=	1; 
-		end
+			end else if(axi_awv_awr_flag && (axi_awaddr==`DONE_BASE_PHYS)) begin
+				valid_rg			<=	0;
+				plaintext_dv_rg		<=  0;
+				key_dv_rg			<=	0;
+			end
+
+			if(axi_awv_awr_flag	&&	(axi_awaddr==`PLAINTEXT_BASE_PHYS))begin
+				plaintext_in_rg[127:96]	<=	S_AXI_WDATA;
+			end else if(axi_awv_awr_flag	&&	(axi_awaddr==`PLAINTEXT_BASE_PHYS+40'h4)) begin
+				plaintext_in_rg[95:64]	<=	S_AXI_WDATA;
+			end else if (axi_awv_awr_flag	&&	(axi_awaddr==`PLAINTEXT_BASE_PHYS+40'h8)) begin
+				plaintext_in_rg[63:32]	<=	S_AXI_WDATA;
+			end	else if (axi_awv_awr_flag	&&	(axi_awaddr==`PLAINTEXT_BASE_PHYS+40'hC)) begin
+				plaintext_in_rg[31:0]	<=	S_AXI_WDATA;
+				plaintext_dv_rg			<=	1;
+			end 
+			
+			if(axi_awv_awr_flag	&&	(axi_awaddr==`KEY_BASE_PHYS))begin
+				key_in_rg[127:96]	<=	S_AXI_WDATA;
+			end else if(axi_awv_awr_flag	&&	(axi_awaddr==`KEY_BASE_PHYS+40'h4)) begin
+				key_in_rg[95:64]	<=	S_AXI_WDATA;
+			end else if (axi_awv_awr_flag	&&	(axi_awaddr==`KEY_BASE_PHYS+40'h8)) begin
+				key_in_rg[63:32]	<=	S_AXI_WDATA;
+			end	else if (axi_awv_awr_flag	&&	(axi_awaddr==`KEY_BASE_PHYS+40'hC)) begin
+				key_in_rg[31:0]	<=	S_AXI_WDATA;
+				key_dv_rg			<=	1;
+			end
+
 	end
 	end
 	// Solve output logic
@@ -683,15 +693,25 @@ module AXI4_Mapping
 		if(S_AXI_ARESETN == 1'b0) begin
 			axi_rdata	<=	0;
 		end else begin 
-			if(axi_arv_arr_flag	&&	(axi_awaddr==`RESULT_BASE_PHYS)) begin
-				axi_rdata			<=	{dout_wr[15:0],    dout_wr[31:16],
-										dout_wr[47:32],    dout_wr[63:48],
-										dout_wr[79:64],    dout_wr[95:80],
-										dout_wr[111:96],  dout_wr[127:112]};	
-			end else if (axi_araddr == `VALID_BASE_PHYS) begin
-                    axi_rdata <= {127'd0, dout_dv_wr};
+			if (dout_valid_wr == 1'b1) begin
+				valid_rg <= 1'b1;
+			end
+			
+			if (axi_arv_arr_flag && (axi_araddr == `RESULT_BASE_PHYS)) begin
+				axi_rdata 	<= dout_wr[31:0];   
+			end	
+			else if (axi_arv_arr_flag && (axi_araddr == `RESULT_BASE_PHYS + 40'h4)) begin
+				axi_rdata 	<= dout_wr[63:32];  
+			end	
+			else if (axi_arv_arr_flag && (axi_araddr == `RESULT_BASE_PHYS + 40'h8)) begin
+				axi_rdata 	<= dout_wr[95:64];  
+			end	
+			else if (axi_arv_arr_flag && (axi_araddr == `RESULT_BASE_PHYS + 40'hC)) begin
+				axi_rdata 	<= dout_wr[127:96]; 
+			end else if (axi_arv_arr_flag && (axi_araddr == `VALID_BASE_PHYS)) begin
+                    axi_rdata <= {31'h0, valid_rg};
 			end else begin
-				axi_rdata			<=	0;
+				axi_rdata			<=	axi_rdata;
 			end
 		end
 	end
@@ -701,13 +721,14 @@ module AXI4_Mapping
 	)	core	(
 		.clk			  (S_AXI_ACLK	    ),
 		.rst_n		      (S_AXI_ARESETN    ),
+		.start_in		  (start_in_rg		),
 		.plaintext_in	  (plaintext_in_rg	),
 		.plaintext_dv_in  (plaintext_dv_rg	),
 		.key_in			  (key_in_rg	    ),
 		.key_dv_in		  (key_dv_rg	    ),
 
 		.data_out		  (dout_wr			),
-		.core_dv_out	  (dout_dv_wr	    )
+		.core_dv_out	  (dout_valid_wr	)
 	);
 
 endmodule
