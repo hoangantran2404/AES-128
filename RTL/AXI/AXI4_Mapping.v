@@ -717,7 +717,7 @@ module AXI4_Mapping
 	end
 	// User logic ends
 	AES128_core	#(
-		.DATA_WIDTH(16)
+		.DATA_WIDTH(128)
 	)	core	(
 		.clk			  (S_AXI_ACLK	    ),
 		.rst_n		      (S_AXI_ARESETN    ),
