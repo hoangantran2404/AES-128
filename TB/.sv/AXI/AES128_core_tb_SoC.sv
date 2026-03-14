@@ -18,6 +18,26 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 03/11/2026 09:08:08 PM
+// Design Name: 
+// Module Name: AES128_core_SoC
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 //==========================================//
 //           Interface Definition           //
 //==========================================//
@@ -101,6 +121,7 @@ module AES128_core_SoC_tb;
     task automatic initialize_input();
         vif.rst_n           <= 0;
         vif.cb.start_in     <= 0;
+        vif.cb.done_in      <= 0;
         vif.cb.plaintext_in <= 0;
         vif.cb.plaintext_dv_in <= 0;
         vif.cb.key_in       <= 0;
@@ -115,6 +136,7 @@ module AES128_core_SoC_tb;
 
         $display("--------------------------------------------------");
         $display("[RUNNING] Case %0d: %s", id, tv.test_name);
+        
         
         // Sending data
         @(vif.cb);
@@ -148,6 +170,8 @@ module AES128_core_SoC_tb;
             failed_cases++;
         end
         
+        vif.cb.done_in    <=    1;
+        @(vif.cb);
         vif.cb.done_in    <=    0;
         repeat(5) @(vif.cb);
     endtask
