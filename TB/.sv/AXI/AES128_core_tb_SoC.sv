@@ -24,6 +24,7 @@
 interface aes_interface #(parameter DATA_WIDTH = 128) (input bit clk);
     logic                   rst_n;
     logic                   start_in;
+    logic                   done_in;
     logic [DATA_WIDTH-1:0]  plaintext_in;
     logic                   plaintext_dv_in;
     logic [DATA_WIDTH-1:0]  key_in;
@@ -34,7 +35,7 @@ interface aes_interface #(parameter DATA_WIDTH = 128) (input bit clk);
     clocking cb @(posedge clk);
         default input #1step output #1;
         output  rst_n;
-        output  start_in;
+        output  start_in,done_in;
         output  plaintext_in, plaintext_dv_in, key_in, key_dv_in;
         input   data_out, core_dv_out;
     endclocking
@@ -65,6 +66,7 @@ module AES128_core_SoC_tb;
         .clk            (clk),
         .rst_n          (vif.rst_n),
         .start_in       (vif.start_in),
+        .done_in        (vif.done_in),
         .plaintext_in   (vif.plaintext_in),
         .plaintext_dv_in(vif.plaintext_dv_in),
         .key_in         (vif.key_in),
@@ -145,7 +147,8 @@ module AES128_core_SoC_tb;
             $error("[FAILED] Case %0d mismatched! \n   Act: %h\n   Exp: %h", id, vif.cb.data_out, tv.exp_ct);
             failed_cases++;
         end
-
+        
+        vif.cb.done_in    <=    0;
         repeat(5) @(vif.cb);
     endtask
 
