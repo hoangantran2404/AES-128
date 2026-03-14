@@ -18,8 +18,6 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
 module AES128_IP #(
 		parameter integer C_S_AXI_ID_WIDTH		= 1,
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
@@ -89,7 +87,8 @@ module AES128_IP #(
 		.C_S_AXI_AWUSER_WIDTH       (C_S_AXI_AWUSER_WIDTH),
 		.C_S_AXI_ARUSER_WIDTH       (C_S_AXI_ARUSER_WIDTH),
 		.C_S_AXI_WUSER_WIDTH        (C_S_AXI_WUSER_WIDTH),
-		.C_S_AXI_RUSER_WIDTH        (C_S_AXI_RUSER_WIDTH)
+		.C_S_AXI_RUSER_WIDTH        (C_S_AXI_RUSER_WIDTH),
+		.C_S_AXI_BUSER_WIDTH		(C_S_AXI_BUSER_WIDTH)	
     )u_AXI4_Mapping (
         // Global signals
         .S_AXI_ACLK                 (S_AXI_ACLK),
