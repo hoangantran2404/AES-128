@@ -24,6 +24,7 @@ module AES128_core #(
 (
     input wire                              clk, rst_n,
     input wire                              start_in,
+    input wire                              done_in,
     input wire [DATA_WIDTH-1:0]             plaintext_in,
     input wire                              plaintext_dv_in,
     input wire [DATA_WIDTH-1:0]             key_in,
@@ -65,7 +66,7 @@ module AES128_core #(
     //                Instantiate module                //
     //==================================================//
     Key_Expansion #(
-        .DATA_WIDTH(2*DATA_WIDTH)
+        .DATA_WIDTH(32)
     ) module_Key_Expansion
     (
         .clk            (clk                        ),
@@ -84,7 +85,7 @@ module AES128_core #(
     );
 
     Cipher #(
-        .DATA_WIDTH(2*DATA_WIDTH)
+        .DATA_WIDTH(32)
     ) module_Cipher
     (
         .clk            (clk                        ),
@@ -112,7 +113,7 @@ module AES128_core #(
     //==================================================//
     //                  Next State LogicS               //
     //==================================================//
-    always @(start_in or cipher_dv_out_w) begin
+    always @(start_in or cipher_dv_out_w or done_in) begin
         case(current_state_r)
             s_IDLE: 
                 if(start_in == 1'b1)
@@ -125,7 +126,10 @@ module AES128_core #(
                 else
                     next_state_r = s_EXEC;
             s_DONE:
-                next_state_r    =   s_IDLE;
+                if(done_in==1'b1)
+                    next_state_r    =   s_IDLE;
+                else 
+                    next_state_r    =   s_DONE;
             default: 
                 next_state_r = s_IDLE;
         endcase
@@ -154,10 +158,10 @@ module AES128_core #(
                 case(current_state_r)
                     s_IDLE: begin
                         core_count_r            <=  0;
+                        done_flag_r             <=  0;
                         if(start_in) begin
                             address_text_r      <=  plaintext_in;
                             address_key_r       <=  key_in;
-                            done_flag_r         <=  0;
                         end
                     end
                     s_EXEC: begin
